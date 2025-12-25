@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ContextFort Dashboard Installation Script
-# This script installs dependencies and starts the frontend development server
+# This script downloads the repository, installs dependencies, and starts the frontend server
 
 set -e  # Exit on error
 
@@ -9,12 +9,25 @@ set -e  # Exit on error
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
 NC='\033[0m' # No Color
+
+# Configuration
+REPO_URL="https://github.com/caffienet0code/monitor-client.git"
+REPO_DIR="monitor-client"
+DASHBOARD_DIR=""
 
 echo "================================================"
 echo "ContextFort Dashboard - Installation & Startup"
 echo "================================================"
 echo ""
+
+# Check if git is installed
+if ! command -v git &> /dev/null; then
+    echo -e "${RED}Error: git is not installed${NC}"
+    echo "Please install git from https://git-scm.com/"
+    exit 1
+fi
 
 # Check if Node.js is installed
 if ! command -v node &> /dev/null; then
@@ -30,16 +43,39 @@ if ! command -v npm &> /dev/null; then
     exit 1
 fi
 
+echo -e "${GREEN}✓ git version: $(git --version | cut -d' ' -f3)${NC}"
 echo -e "${GREEN}✓ Node.js version: $(node --version)${NC}"
 echo -e "${GREEN}✓ npm version: $(npm --version)${NC}"
 echo ""
 
-# Check if we're in the right directory
-if [ ! -f "package.json" ]; then
-    echo -e "${RED}Error: package.json not found${NC}"
-    echo "Please run this script from the contextfort-dashboard directory"
+# Clone or update repository
+if [ -d "$REPO_DIR" ]; then
+    echo -e "${YELLOW}Repository already exists. Updating...${NC}"
+    cd "$REPO_DIR"
+    git pull origin main || git pull origin master
+    cd ..
+    echo -e "${GREEN}✓ Repository updated${NC}"
+else
+    echo -e "${YELLOW}Cloning repository...${NC}"
+    git clone "$REPO_URL"
+    if [ $? -eq 0 ]; then
+        echo -e "${GREEN}✓ Repository cloned successfully${NC}"
+    else
+        echo -e "${RED}✗ Failed to clone repository${NC}"
+        exit 1
+    fi
+fi
+echo ""
+
+# Navigate to dashboard directory
+if [ ! -d "$REPO_DIR/$DASHBOARD_DIR" ]; then
+    echo -e "${RED}Error: Dashboard directory not found${NC}"
     exit 1
 fi
+
+cd "$REPO_DIR/$DASHBOARD_DIR"
+echo -e "${BLUE}Working directory: $(pwd)${NC}"
+echo ""
 
 # Install dependencies
 echo -e "${YELLOW}Installing dependencies...${NC}"
